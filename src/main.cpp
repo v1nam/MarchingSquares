@@ -1,19 +1,21 @@
 #include "raylib.h"
-#include <vector>
 #include <cmath>
-#include <ctime>
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
+#include <vector>
 
-const int CELL = 5;
+const int CELL = 15;
 
 int binToInt(int a, int b, int c, int d)
 {
     return a * 1 + b * 2 + c * 4 + d * 8;
 }
 
-Vector2 randomGrad(int ix, int iy) {
-    float random = 2920.f * sin(ix * 21942.f + iy * 171324.f + 8912.f) * cos(ix * 23157.f * iy * 217832.f + 9758.f) * rand();
+Vector2 randomGrad(int ix, int iy)
+{
+    float random =
+        2920.f * sin(ix * 21942.f + iy * 171324.f + 8912.f) * cos(ix * 23157.f * iy * 217832.f + 9758.f) * rand();
     return Vector2{(float)cos(random), (float)sin(random)};
 }
 
@@ -38,12 +40,12 @@ float noise2D(float x, float y)
     float t = dotProd(x - x1, y - y0, randomGrad(x1, y0));
     float u = dotProd(x - x0, y - y1, randomGrad(x0, y1));
     float v = dotProd(x - x1, y - y1, randomGrad(x1, y1));
-    
+
     float sx = 3.0 * powf(x - x0, 2.0) - 2.0 * powf(x - x0, 3.0);
     float sy = 3.0 * powf(y - y0, 2.0) - 2.0 * powf(y - y0, 3.0);
     float a = interp(s, t, sx);
     float b = interp(u, v, sx);
-    
+
     float value = interp(b, a, sy);
     return value;
 }
@@ -67,45 +69,45 @@ float perlinNoise(float x, float y, int octaves, float pers, float lum)
 
 void drawContour(const std::vector<std::vector<int>> &plane, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
 {
-    Vector2 rlP1 = Vector2{p1.x * CELL + CELL/2, p1.y * CELL};
-    Vector2 rlP2 = Vector2{p2.x * CELL, p2.y * CELL + CELL/2};
-    Vector2 rlP3 = Vector2{p3.x * CELL, p3.y * CELL - CELL/2};
-    Vector2 rlP4 = Vector2{p4.x * CELL - CELL/2, p4.y * CELL};
+    Vector2 rlP1 = Vector2{p1.x * CELL + CELL / 2, p1.y * CELL};
+    Vector2 rlP2 = Vector2{p2.x * CELL, p2.y * CELL + CELL / 2};
+    Vector2 rlP3 = Vector2{p3.x * CELL, p3.y * CELL - CELL / 2};
+    Vector2 rlP4 = Vector2{p4.x * CELL - CELL / 2, p4.y * CELL};
 
     switch (binToInt(plane[p1.x][p1.y], plane[p2.x][p2.y], plane[p3.x][p3.y], plane[p4.x][p4.y]))
     {
-        case 1:
-        case 14:
-            DrawLineV(rlP1, rlP3, BLACK);
-            break;
-        case 2:
-        case 13:
-            DrawLineV(rlP1, rlP2, BLACK);
-            break;
-        case 3:
-        case 12:
-            DrawLineV(rlP3, rlP2, BLACK);
-            break;
-        case 4:
-        case 11:
-            DrawLineV(rlP3, rlP4, BLACK);
-            break;
-        case 5:
-        case 10:
-            DrawLineV(rlP1, rlP4, BLACK);
-            break;
-        case 6:
-            DrawLineV(rlP1, rlP3, BLACK);
-            DrawLineV(rlP2, rlP4, BLACK);
-            break;
-        case 7:
-        case 8:
-            DrawLineV(rlP2, rlP4, BLACK);
-            break;
-        case 9:
-            DrawLineV(rlP1, rlP2, BLACK);
-            DrawLineV(rlP3, rlP4, BLACK);
-            break;
+    case 1:
+    case 14:
+        DrawLineV(rlP1, rlP3, BLACK);
+        break;
+    case 2:
+    case 13:
+        DrawLineV(rlP1, rlP2, BLACK);
+        break;
+    case 3:
+    case 12:
+        DrawLineV(rlP3, rlP2, BLACK);
+        break;
+    case 4:
+    case 11:
+        DrawLineV(rlP3, rlP4, BLACK);
+        break;
+    case 5:
+    case 10:
+        DrawLineV(rlP1, rlP4, BLACK);
+        break;
+    case 6:
+        DrawLineV(rlP1, rlP3, BLACK);
+        DrawLineV(rlP2, rlP4, BLACK);
+        break;
+    case 7:
+    case 8:
+        DrawLineV(rlP2, rlP4, BLACK);
+        break;
+    case 9:
+        DrawLineV(rlP1, rlP2, BLACK);
+        DrawLineV(rlP3, rlP4, BLACK);
+        break;
     }
 }
 
@@ -130,7 +132,7 @@ int main()
         plane[i] = std::vector<int>(endY);
         for (int j{0}; j < endY; j++)
         {
-            if (i != endX-1 && j != endY-1)
+            if (i != endX - 1 && j != endY - 1)
             {
                 float rngx = rand() / RAND_MAX;
                 float rngy = rand() / RAND_MAX;
@@ -168,7 +170,7 @@ int main()
         {
             for (int j{0}; j < endY; j++)
             {
-                if (i != endX-1 && j != endY-1)
+                if (i != endX - 1 && j != endY - 1)
                 {
                     Vector2 p1 = Vector2{(float)i, (float)j};
                     Vector2 p2 = Vector2{(float)i + 1, (float)j};
@@ -177,7 +179,7 @@ int main()
                     drawContour(plane, p1, p2, p3, p4);
                 }
             }
-        }   
+        }
 
         EndDrawing();
     }
