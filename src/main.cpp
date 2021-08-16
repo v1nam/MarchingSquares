@@ -5,12 +5,13 @@
 #include <iostream>
 #include <vector>
 
-const int CELL = 15;
+const int CELL = 30;
 
 int binToInt(int a, int b, int c, int d)
 {
     return a * 1 + b * 2 + c * 4 + d * 8;
 }
+
 
 Vector2 randomGrad(int ix, int iy)
 {
@@ -27,6 +28,11 @@ float dotProd(float x1, float y1, Vector2 grad)
 float interp(float a0, float a1, float w)
 {
     return (a1 - a0) * ((w * (w * 6.0 - 15.0) + 10.0) * w * w * w) + a0;
+}
+
+float lerp(float v0, float v1, float t)
+{
+    return (1.0 - t) * v0 + v1 * t;
 }
 
 float noise2D(float x, float y)
@@ -67,14 +73,23 @@ float perlinNoise(float x, float y, int octaves, float pers, float lum)
     return total / max;
 }
 
-void drawContour(const std::vector<std::vector<int>> &plane, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+void drawContour(const std::vector<std::vector<float>> &plane, int px, int py)
 {
-    Vector2 rlP1 = Vector2{p1.x * CELL + CELL / 2, p1.y * CELL};
-    Vector2 rlP2 = Vector2{p2.x * CELL, p2.y * CELL + CELL / 2};
-    Vector2 rlP3 = Vector2{p3.x * CELL, p3.y * CELL - CELL / 2};
-    Vector2 rlP4 = Vector2{p4.x * CELL - CELL / 2, p4.y * CELL};
 
-    switch (binToInt(plane[p1.x][p1.y], plane[p2.x][p2.y], plane[p3.x][p3.y], plane[p4.x][p4.y]))
+    float val1 = plane[px][py] + 1.0;
+    float val2 = plane[px + 1][py] + 1.0;
+    float val3 = plane[px + 1][py + 1] + 1.0;
+    float val4 = plane[px][py + 1] + 1.0;
+
+    float cx = px * CELL;
+    float cy = py * CELL;
+
+    Vector2 rlP1 = Vector2{lerp(cx, cx + CELL, (1.0 - val1) / (val2 - val1)), cy};
+    Vector2 rlP2 = Vector2{cx + CELL, lerp(cy, cy + CELL, (1.0 - val2) / (val3 - val2))};
+    Vector2 rlP3 = Vector2{cx, lerp(cy, cy + CELL, (1.0 - val1) / (val4 - val1))};
+    Vector2 rlP4 = Vector2{lerp(cx, cx + CELL, (1.0 - val4) / (val3 - val4)), cy + CELL};
+
+    switch (binToInt(ceil(val1 - 1.0), ceil(val2 - 1.0), ceil(val4 - 1.0), ceil(val3 - 1.0)))
     {
     case 1:
     case 14:
@@ -120,50 +135,28 @@ int main()
 
     srand(std::time(0));
 
-    double dtime = 0.0;
-
     SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(screenWidth, screenHeight, "Marching Squares");
 
-    std::vector<std::vector<int>> plane(endX);
+    std::vector<std::vector<float>> plane(endX);
 
+    float xoff = 0.0;
+    float yoff = 0.0;
     for (int i{0}; i < endX; i++)
     {
-        plane[i] = std::vector<int>(endY);
+        xoff += 0.1;
+        plane[i] = std::vector<float>(endY);
         for (int j{0}; j < endY; j++)
         {
             if (i != endX - 1 && j != endY - 1)
-            {
-                float rngx = rand() / RAND_MAX;
-                float rngy = rand() / RAND_MAX;
-                plane[i][j] = ceil(perlinNoise(i + rngx, j + rngy, 6, 1.0 / 4.0, 2.0));
-            }
+                plane[i][j] = perlinNoise(xoff, yoff, 6, 1.0 / 4.0, 2.0);
+            yoff += 0.1;
         }
     }
 
     while (!WindowShouldClose())
     {
         BeginDrawing();
-        /*
-        dtime += GetFrameTime();
-        if (dtime >= 0.5)
-        {
-            dtime = 0.0;
-            for (int i{0}; i < endX; i++)
-            {
-                plane[i] = std::vector<int>(endY);
-                for (int j{0}; j < endY; j++)
-                {
-                    if (i != endX-1 && j != endY-1)
-                    {
-                        float rngx = rand() / RAND_MAX;
-                        float rngy = rand() / RAND_MAX;
-                        plane[i][j] = perlinNoise(i + rngx, j + rngy, 6, 1.0 / 8.0, 2.0) < 0.5 ? 0 : 1;
-                    }
-                }
-            }
-        }
-        */
 
         ClearBackground(RAYWHITE);
         for (int i{0}; i < endX; i++)
@@ -171,13 +164,7 @@ int main()
             for (int j{0}; j < endY; j++)
             {
                 if (i != endX - 1 && j != endY - 1)
-                {
-                    Vector2 p1 = Vector2{(float)i, (float)j};
-                    Vector2 p2 = Vector2{(float)i + 1, (float)j};
-                    Vector2 p3 = Vector2{(float)i, (float)j + 1};
-                    Vector2 p4 = Vector2{(float)i + 1, (float)j + 1};
-                    drawContour(plane, p1, p2, p3, p4);
-                }
+                    drawContour(plane, i, j);
             }
         }
 
