@@ -92,6 +92,7 @@ int main()
 
     std::vector<std::vector<float>> plane(endX);
     int randPerc = 50;
+    RenderTexture2D drawTexture = LoadRenderTexture(screenWidth, screenHeight);
 
     for (int i{0}; i < endX; i++)
     {
@@ -119,11 +120,7 @@ int main()
             }
         }
     }
-
-    while (!WindowShouldClose())
-    {
-        BeginDrawing();
-
+    BeginTextureMode(drawTexture);
         ClearBackground(BLACK);
         for (int i{0}; i < endX; i++)
         {
@@ -135,9 +132,14 @@ int main()
                         DrawRectangle(i * CELL, j * CELL, 2.0, 2.0, RAYWHITE);
             }
         }
-
+    EndTextureMode();
+    while (!WindowShouldClose())
+    {
+        BeginDrawing();
+        DrawTexture(drawTexture.texture, 0, 0, WHITE);
         EndDrawing();
     }
+    UnloadRenderTexture(drawTexture);
     CloseWindow();
     return 0;
 }
