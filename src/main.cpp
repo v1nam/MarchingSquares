@@ -128,7 +128,7 @@ int main()
             {
                 if (i != endX - 1 && j != endY - 1)
                     drawContour(plane, i, j);
-                    if (plane[i][j] == 1)
+                    if (plane[i][j])
                         DrawRectangle(i * CELL, j * CELL, 2, 2, RAYWHITE);
             }
         }
